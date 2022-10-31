@@ -1,0 +1,73 @@
+@startuml
+autonumber
+skinparam ParticipantPadding 30
+"Organization User" -> "JuicyChainWebPortal" : login
+"JuicyChainWebPortal" -> "JuicyChainAPI" : getProfile(organization)
+note right
+  plantuml src: https://github.com/The-New-Fork/deploy-samples/blob/master/diagrams/certificate-and-certificate-rule.txt
+end note
+box "JuicyChain"
+participant "JuicyChainWebPortal"
+participant "JuicyChainAPI"
+participant "PublicBCWebExplorer"
+end box
+
+box "Organization"
+participant "Organization BC Node"
+participant "Certificate Wallet"
+participant "Certificate Rule Multisig Wallet"
+end box
+
+box "Audit"
+participant "Auditor"
+end box
+
+== upload new certificate ==
+"Organization User" -> "JuicyChainWebPortal" : uploadCertificate
+"JuicyChainWebPortal" -> "JuicyChainAPI" : createCertificateRecord(certDetails)
+"Organization BC Node" -> "JuicyChainAPI" : getNewCertificates
+"Organization BC Node" -> "Organization BC Node" : readCertDetails
+"Organization BC Node" -> "Organization BC Node" : signDetails
+note right
+  the signing is done by each soveriegn
+  organization p2p node with their own
+  private organization key
+end note
+"Organization BC Node" -> "Organization BC Node" : createWallet
+"Organization BC Node" -> "JuicyChainAPI" : updateCertificateRecord(r-address, public-key)
+"Organization BC Node" -> "Certificate Wallet" : fundWallet()
+
+== create certificate condition ==
+"Organization User" -> "JuicyChainWebPortal" : createCondition(certificate)
+
+"JuicyChainWebPortal" -> "JuicyChainAPI" : registerCondition(certificate)
+"Organization BC Node" -> "JuicyChainAPI" : getNewConditions
+"Organization BC Node" -> "Organization BC Node" : readConditionDetails
+"Organization BC Node" -> "Organization BC Node" : signDetails
+"Organization BC Node" -> "Organization BC Node" : createMultiSigWallet
+note left
+  a multi signature wallet is created 
+  between the organization, certificate 
+  & certificate-condition, with the certificate-condition
+  address verifiable by anyone with blockchain software
+end note
+"Organization BC Node" -> "Certificate Rule Multisig Wallet" : createTimestampTx
+"Organization BC Node" -> "JuicyChainAPI" : updateConditionRecord(r-address, public-key, multisig-address, txid)
+
+
+== audit ==
+"Auditor" -> "JuicyChainWebPortal" : login
+"Auditor" -> "JuicyChainWebPortal" : getRecordForAudit(organization, certificate, batch, etc.)
+"JuicyChainWebPortal" -> "JuicyChainAPI" : getOrganizationData(organization)
+"Auditor" -> "JuicyChainWebPortal" : auditRecord()
+"JuicyChainWebPortal" -> "PublicBCWebExplorer" : getTxDetails()
+"JuicyChainWebPortal" -> "JuicyChainWebPortal" : renderAuditResults()
+"JuicyChainWebPortal" -> "Auditor" : validateResults()
+note left
+  all JuicyChain addresses & transactions 
+  are easily auditable & verifiable via
+  JuicyChainWebPortal, public explorer
+  or by joining the p2p network and auditing
+  the blocks with chain analysis software
+end note
+@enduml

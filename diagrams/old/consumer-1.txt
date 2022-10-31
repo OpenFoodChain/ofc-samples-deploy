@@ -1,0 +1,28 @@
+@startuml
+title HTTP Client 1 Request. Longer Dev Time RestAPI. Better Connected Backend Response. No Direct Blockchain Interaction From Consumers.
+autonumber
+activate Consumer
+activate ConsumerWeb
+Consumer -> ConsumerWeb : Browse Request
+Consumer <- ConsumerWeb : Server Response "Track Your Juice"
+deactivate ConsumerWeb
+box "Public Consumer Global Data"
+Consumer -> ConsumerRestAPI : POST BBDJDSJDE
+activate ConsumerRestAPI
+activate Consumer
+ConsumerRestAPI -> DB : Get Batch Number Details
+end box
+box "Load Balance and/or DNS Round Robin"
+ConsumerRestAPI -> Explorer : GET Batch Wallet Tx
+activate Explorer
+Explorer -> JuicyChain : gettransactions(walletaddress)
+Explorer <- JuicyChain : response json transactions
+ConsumerRestAPI <- Explorer : Response Transactions
+deactivate Explorer
+end box
+ConsumerRestAPI -> DB : Find Artifacts By Sender Addresses
+Consumer <- ConsumerRestAPI : Return Artifacts As "Product Journey" Data
+deactivate ConsumerRestAPI
+deactivate Consumer
+deactivate Consumer
+@enduml

@@ -1,0 +1,67 @@
+@startuml
+allow_mixing
+
+node ChainServices {
+  node smartchain
+  storage dataconfig #pink {
+    card walletfullnode
+    card debuglog
+    folder blocks
+    folder chainstate
+    card rpcuser #green
+    card rpcpassword #green
+    card rpcport #green
+  }
+  storage zcashparams #orange {
+    folder dotzcashparams
+    card readonly
+  }
+  node electrumx
+  node litewallet1
+  node litewallet2
+  node litewalletn
+  node pymiddleware
+  node webproxy
+  pymiddleware --> litewallet1 : port7783
+  pymiddleware --> litewallet2 : port7783
+  pymiddleware --> litewalletn : port7783
+  pymiddleware .. walletfullnode : smartchainrpc
+
+
+  node sql {
+    storage persisted #pink {
+      database privatedata
+    }
+  }
+}
+cloud seeburger
+seeburger --> webproxy : http
+webproxy --> pymiddleware : http
+pymiddleware --> sql : port3306
+pymiddleware --> smartchain : rpcport
+
+cloud p2p {
+  left to right direction
+  component peer1
+  component peer2
+  component peern
+}
+
+smartchain *-- dataconfig
+smartchain *-- zcashparams
+electrumx --> smartchain : rpcport
+card blah
+note right of electrumx #pink
+  Need IP address & rpc credentials of smartchain container as envariables in docker-compose file
+  The rpc credentials also need to be passed into the pymiddleware
+end note
+litewallet1 --> electrumx
+litewallet2 --> electrumx
+litewalletn --> electrumx
+smartchain <--> peer1 : p2pport
+smartchain <--> peer2 : p2pport
+smartchain <--> peern : p2pport
+peer1 <--> peer2
+peer1 <--> peern
+peer2 <--> peern
+@enduml

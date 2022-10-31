@@ -1,0 +1,153 @@
+version: "3.7"
+
+services:
+  ijuice-komodo-node:
+    build:
+      context: ./ijuice-komodo-node
+      args:
+        - IJUICE_DATA_PATH=${DATA_PATH}/${AC_NAME}
+    image: ijuice-komodo-node:test
+    environment:
+      - AC_CC=2
+      - AC_PUBKEY=038afbc819aecfb3d65acdf270f755c9279d69d4a27293f10889264b8bd6c1fae2
+      - AC_REWARD=10000
+      - AC_SUPPLY=1000
+      - IJUICE_DATA_PATH=${DATA_PATH}/${AC_NAME}
+      - JUICYCHAIN_TEST_NODE=144.76.148.154
+      - IMPORT_API_IP=${IMPORT_API_IPV4_ADDR}
+      - IMPORT_API_PORT=${IMPORT_API_PORT}
+      - JUICYCHAIN_API_IP=${JUICYCHAIN_API_IP}
+      - JUICYCHAIN_API_PORT=${JUICYCHAIN_API_PORT}
+      - JUICYCHAIN_API_VERSION_PATH=${JUICYCHAIN_API_VERSION_PATH}
+      - JUICYCHAIN_API_ORGANIZATION_PATH=${JUICYCHAIN_API_ORGANIZATION_PATH}
+      - JUICYCHAIN_API_ORGANIZATION_BATCH=${JUICYCHAIN_API_ORGANIZATION_BATCH}
+      - JUICYCHAIN_API_ORGANIZATION_LOCATION=${JUICYCHAIN_API_ORGANIZATION_LOCATION}
+      - JUICYCHAIN_API_ORGANIZATION_CERTIFICATE=${JUICYCHAIN_API_ORGANIZATION_CERTIFICATE}
+      - JUICYCHAIN_API_ORGANIZATION_POOL_PO=${JUICYCHAIN_API_ORGANIZATION_POOL_PO}
+      - JUICYCHAIN_API_ORGANIZATION_POOL_BATCH=${JUICYCHAIN_API_ORGANIZATION_POOL_BATCH}
+      - THIS_NODE_WALLET=${THIS_NODE_WALLET}
+      - THIS_NODE_PUBKEY=${THIS_NODE_PUBKEY}
+      - THIS_NODE_WIF=${THIS_NODE_WIF}
+      - BLOCKNOTIFY_DIR=${BLOCKNOTIFY_DIR}
+      - BLOCKNOTIFY_CHAINSYNC_LIMIT=${BLOCKNOTIFY_CHAINSYNC_LIMIT}
+      - HOUSEKEEPING_ADDRESS=${HOUSEKEEPING_ADDRESS}
+      - DEV_IMPORT_API_JCF_BATCH_PATH=${DEV_IMPORT_API_JCF_BATCH_PATH}
+      - DEV_IMPORT_API_JCF_BATCH_REQUIRE_INTEGRITY_PATH=${DEV_IMPORT_API_JCF_BATCH_REQUIRE_INTEGRITY_PATH}
+      - DEV_IMPORT_API_JCF_BATCH_NEW_PATH=${DEV_IMPORT_API_JCF_BATCH_NEW_PATH}
+      - DEV_IMPORT_API_JCF_BATCH_INTEGRITY_PATH=${DEV_IMPORT_API_JCF_BATCH_INTEGRITY_PATH}
+      - DEV_IMPORT_API_RAW_REFRESCO_PATH=${DEV_IMPORT_API_RAW_REFRESCO_PATH}
+      - DEV_IMPORT_API_RAW_REFRESCO_REQUIRE_INTEGRITY_PATH=${DEV_IMPORT_API_RAW_REFRESCO_REQUIRE_INTEGRITY_PATH}
+      - DEV_IMPORT_API_RAW_REFRESCO_NEW_PATH=${DEV_IMPORT_API_RAW_REFRESCO_NEW_PATH}
+      - DEV_IMPORT_API_RAW_REFRESCO_INTEGRITY_PATH=${DEV_IMPORT_API_RAW_REFRESCO_INTEGRITY_PATH}
+      - IJUICE_KOMODO_NODE_USERNAME=${IJUICE_KOMODO_NODE_USERNAME}
+      - IJUICE_KOMODO_NODE_PASSWORD=${IJUICE_KOMODO_NODE_PASSWORD}
+      - IJUICE_KOMODO_NODE_RPC_PORT=${IJUICE_KOMODO_NODE_RPC_PORT}
+    entrypoint:
+      - "bash"
+      - "-c"
+      - |
+        /opt/komodo/komodo/src/komodod \
+        -ac_cc=$${AC_CC} \
+        -ac_name=${AC_NAME} \
+        -ac_pubkey=$${AC_PUBKEY} \
+        -ac_reward=$${AC_REWARD} \
+        -ac_supply=$${AC_SUPPLY} \
+        -addnode=$${JUICYCHAIN_TEST_NODE} \
+        -datadir=$${IJUICE_DATA_PATH} \
+        -rpcallowip=${DOCKER_KOMODO_NETWORK_SUBNET} \
+        -rpcallowip=127.0.0.1 \
+        -rpcbind=0.0.0.0 \
+        -rpcpassword=${IJUICE_KOMODO_NODE_PASSWORD} \
+        -rpcport=${IJUICE_KOMODO_NODE_RPC_PORT} \
+        -rpcuser=${IJUICE_KOMODO_NODE_USERNAME} \
+        -server=1\
+        -timeout=18000 \
+        -txindex=1 \
+        -blocknotify="/opt/komodo/customer-smartchain-nodes-blocknotify/status.sh %s" \
+        -pubkey=$${THIS_NODE_PUBKEY}
+    ports:
+      - "24707:24707"
+      - "24708:24708"
+    networks:
+      komodo:
+          ipv4_address: ${IJUICE_KOMODO_NODE_IPV4_ADDR}
+    volumes:
+      - ./ijuice-komodo-node/data:${DATA_PATH}/${AC_NAME}
+      - ./customer-smartchain-nodes-blocknotify:/opt/komodo/customer-smartchain-nodes-blocknotify
+  blocknotify-python:
+    build:
+      context: ./blocknotify-python
+      args:
+        ENV: dev
+    command: /code/run.sh
+    #command: /bin/bash
+    #stdin_open: true # docker run -i
+    #tty: true        # docker run -t
+    depends_on:
+      - ijuice-komodo-node
+      - import-api
+      - juicychain-api
+    networks:
+      komodo:
+        ipv4_address: ${BLOCKNOTIFY_PYTHON_IPV4_ADDR}
+  import-api:
+    build:
+      context: ./import-api
+      args:
+        ENV: dev
+    command: python manage.py runserver 0.0.0.0:8777
+    environment:
+      - DJANGO_HOST=*
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_PORT=5432
+    volumes:
+      - ./import-api/src/:/code
+    ports:
+      - "8777:8777"
+    links:
+      - db:db
+    depends_on:
+      - db
+    networks:
+      komodo:
+          ipv4_address: ${IMPORT_API_IPV4_ADDR}
+  juicychain-api:
+    build:
+      context: ./juicychain-api
+      args:
+        ENV: dev
+    command: python manage.py runserver 0.0.0.0:8999
+    environment:
+      - DJANGO_HOST=*
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_PORT=5432
+    volumes:
+      - ./juicychain-api/src/:/code
+    ports:
+      - "8999:8999"
+    links:
+      - db:db
+    depends_on:
+      - db
+    networks:
+      komodo:
+          ipv4_address: ${JUICYCHAIN_API_IPV4_ADDR}
+  db:
+    image: postgres:12
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    networks:
+      komodo:
+        ipv4_address: ${POSTGRES_IPV4_ADDR}
+networks:
+  komodo:
+    ipam:
+      driver: default
+      config:
+        - subnet: ${DOCKER_KOMODO_NETWORK_SUBNET}

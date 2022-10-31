@@ -1,0 +1,52 @@
+version: "3.7"
+
+services:
+  ijuice:
+    stdin_open: true
+    tty: true
+    build: .
+    networks:
+      - testnet
+    ports:
+      - "24707:24707"
+      - "24708:24708"
+    expose:
+      - "24708"
+  electrumx:
+    depends_on:
+      - ijuice
+      - db
+    image: lukechilds/electrumx:v1.15.0
+    networks:
+      - testnet
+    ports:
+      - "50001"
+      - "50002"
+    links:
+      - "ijuice:donkeys"
+      - "db:db"
+    environment:
+        COIN: "Komodo"
+        DAEMON_URL: "http://changeuser:changepassword@172.20.0.5:24708"
+#    command: nslookup ijuice > /tmp/test.txt
+  litewalletmiddleware:
+    stdin_open: true
+    tty: true
+    image: coingateways/atomicdexorderbook:0.9.2
+    networks:
+      - testnet
+    ports:
+      - "127.0.0.1:7780:7780"
+      - "8001:8001"
+    environment:
+        MMBOT_URL: "http://localhost:7780"
+        ME_PUBLIC: "false"
+        ME_PRIVATE: "true"
+  db:
+    image: mariadb:10.4
+    environment:
+      MYSQL_ROOT_PASSWORD: "changeme"
+    networks:
+      - testnet
+networks:
+  testnet:

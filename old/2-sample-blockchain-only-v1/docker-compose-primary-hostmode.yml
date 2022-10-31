@@ -1,0 +1,54 @@
+# vim: ts=2 sw=2 et
+version: '3.6'
+
+services:
+  KMD:
+    build:
+      context: ./komodod
+      args:
+        KOMODO_REPO: https://github.com/jl777/komodo
+        #KOMODO_BRANCH: master
+        KOMODO_BRANCH: e159b4e7a40d3886519401c4074e957a1f9d42ba
+        DPOW_BRANCH: jl777
+        # KOMODO_REPO: https://github.com/blackjok3rtt/komodo
+        # KOMODO_BRANCH: dev
+    image: kmdplatform_komodod_master
+    network_mode: host
+    # networks:
+    #  - komodo-primary  
+    # restart: on-failure
+    # expose:
+    #   - "7771"
+    #   - "7770"
+    ports:
+      # RPC port
+      - "127.0.0.1:7771:7771"
+      # P2P
+      - "7770:7770"
+    volumes:
+      - komodo-data:/home/komodo/.komodo
+    environment:
+      - KMD_NOTARIZER=1
+      - KOMODO_RPC_USER=${KOMODO_RPC_USER}
+      - KOMODO_RPC_PASSWORD=${KOMODO_RPC_PASSWORD}
+      - KOMODO_BIND=0.0.0.0
+      - KOMODO_RPC_BIND=0.0.0.0
+      - KOMODO_RPC_ALLOWIP=0.0.0.0/0
+      - KOMODO_MAXCONNECTIONS=32
+      - KOMODO_ARGS=-addnode=5.9.102.210 -addnode=78.47.196.146 -addnode=178.63.69.164 -addnode=88.198.65.74 -addnode=5.9.122.24 -addnode=144.76.94.38 -addnode=89.248.166.911
+      # - KOMODO_BRANCH=beta
+      - BITCOIN_RPC_USER=${BITCOIN_RPC_USER}
+      - BITCOIN_RPC_PASSWORD=${BITCOIN_RPC_PASSWORD}
+      - BITCOIN_RPC_BIND=127.0.0.1
+      - BTC_PUBKEY=${BTC_PUBKEY}
+    # command: >
+    #  bash -c "komodod -reindex"
+
+volumes:
+  komodo-data:
+    driver_opts:
+      type: none
+      device: ${KOMODO_DATA}
+      o: bind
+networks:
+  komodo-primary:

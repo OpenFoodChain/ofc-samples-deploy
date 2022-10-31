@@ -1,0 +1,29 @@
+@startuml
+autonumber
+title HTTP Client 3 Requests. Simple RestAPI Answers 2 Times. Consumer Direct Contact With Blockchain Data via Explorer RestAPI.
+Consumer -> ConsumerWeb : Browse Request
+activate Consumer
+activate ConsumerWeb
+Consumer <- ConsumerWeb : Server Response "Track Your Juice"
+deactivate ConsumerWeb
+box "Public Consumer Global Data"
+Consumer -> ConsumerRestAPI : POST BBDJDSJDE
+activate ConsumerRestAPI
+activate Consumer
+ConsumerRestAPI -> DB : Find Batch Number Details
+end box
+Consumer <- ConsumerRestAPI : Response Batch Wallet & (Un)Healthy Explorer List
+deactivate ConsumerRestAPI
+box "Load Balance and/or DNS Round Robin"
+Consumer -> Explorer : GET Batch Wallet Tx
+activate Explorer
+Explorer -> JuicyChain : gettransactions(walletaddress)
+Explorer <- JuicyChain : response json transactions
+Consumer <- Explorer : Response Transactions (json)
+end box
+deactivate Explorer
+Consumer -> ConsumerRestAPI : POST Transaction Sender Lookups
+activate Consumer
+ConsumerRestAPI -> DB : Find Artifacts By Sender Addresses
+Consumer <- ConsumerRestAPI : Return Artifacts As "Product Journey" Data
+@enduml

@@ -1,0 +1,28 @@
+version: "3.2"
+
+services:
+  app:
+    build: .
+    environment:
+        IS_DOCKER: 1
+        GUNICORN_BIND: 0.0.0.0:8000
+    volumes:
+      - .:/app/src
+    depends_on:
+      - db
+    restart: always
+
+  db:
+    environment:
+        POSTGRES_USER: django_trading_bot
+        POSTGRES_PASSWORD: cool
+        POSTGRES_DB: db_django_trading_bot
+    image: postgres:12
+    ports:
+      - "127.0.0.1:5432:5432"
+
+
+#to rebuild the app (Dockerfile) in the same command
+#docker-compose up --build --no-deps app
+#psql -h 127.0.0.1 -d db_django_trading_bot -U django_trading_bot
+

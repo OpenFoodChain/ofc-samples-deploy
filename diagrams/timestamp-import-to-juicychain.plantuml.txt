@@ -1,0 +1,156 @@
+@startuml
+note right
+  plantuml src https://github.com/The-New-Fork/deploy-samples/blob/master/diagrams/timestamp-import-to-juicychain.plantuml.txt
+end note
+
+(*) -left-> "
+{{
+salt
+{^"Unchain Integration Pipeline"
+  BATCH_LOT    | "111111"
+  GTIN | "mat num 22222"
+  PROD_DATE | "01/01/2020"
+  BB_DATE | "31/12/2022"
+  ORIGIN | "Country"
+  GLN | "location/facility"
+  FROM_GTIN | "mat num 33333"
+  TO_GTIN | "mat num 44444"
+  PROD_JUL_START | "julian day s"
+  PROD_JUL_END | "julian day e"
+
+  [  Upload To ImportAPI  ]
+}
+}}
+" as upload
+
+upload -down-> NewRecordImportAPI
+
+
+GetImportRequiresTimestamp -up-> NewRecordImportAPI
+GetImportRequiresTimestamp -right-> ReadImportDetails
+ReadImportDetails -down-> "SignBatchDetails" as mainwallet
+mainwallet -down-> BatchWallet
+ReadImportDetails -down-> "LoadCertificateWallet" as offlinewalletcert
+ReadImportDetails -down-> "LoadLocationWallet" as offlinewalletloc
+ReadImportDetails -down-> "LoadMoreWallets" as offlinewalletarb
+
+ReadImportDetails -right-> GetJCSharedPartnerDetails
+GetJCSharedPartnerDetails -up-> "
+{{
+salt
+{^"JuicyChain Shared Partner"
+
+{T
++Item           | BC Address   | Details
++ Org123        | Rorg123      | +
+++ Certificates  | Rpoolcerts   | +
++++ Cert1       | Rcert1       | +
++++ Cert2       | Rcert2       | +
+++++ Rule1      | Rcert2r1     | +
+++++ Rule2      | Rcert2r2     | +
++++ Cert3       | Rcert3       | +
+++ Location     | Rloc         | +
+++++ Herrath    | Rherrath     | +
+++ Batch        | Rpoolbatch   | +
++++ b123        | Rabcd123     | +
++++ b234        | Rabcd234     | +
+}
+}
+
+}}
+" as sharedpartner
+
+
+mainwallet -down-> SendTx
+offlinewalletcert -down-> SendTx
+offlinewalletloc -down-> SendTx
+offlinewalletarb -down-> SendTx
+
+SendTx -left-> BatchWallet
+
+SendTx -right-> BlockchainResponse
+BlockchainResponse -right-> TimestampedRecordImportAPI
+}
+
+TimestampedRecordImportAPI -right-> "
+{{
+salt
+{^"Import API - timestamp complete"
+  BATCH_LOT    | "111111"
+  GTIN | "mat num 22222"
+  PROD_DATE | "01/01/2020"
+  BB_DATE | "31/12/2022"
+  ORIGIN | "Country"
+  GLN | "location/facility"
+  FROM_GTIN | "mat num 33333"
+  TO_GTIN | "mat num 44444"
+  PROD_JUL_START | "julian day s"
+  PRODY_JUL_END | "julian day e"
+  ---------
+  api_ts_start_tx | "txid"
+  api_ts_end_tx | "txid"
+  batch_tx | "txid"
+  po_tx | "txid"
+  certificate_tx | "txid"
+  location_tx | "txid"
+  origin_tx | "txid"
+  batch_wallet | "raddress"
+  [  Audit Download   ]
+}
+}}
+" as update
+TimestampedRecordImportAPI -down-> PushPublicData
+PushPublicData -down-> JuicyChainAPI
+
+
+JuicyChainAPI -down-> "
+{{
+salt
+{^"JuicyChain API - Blockchain Data"
+  BATCH_LOT    | "Rbatch123"
+  PROD_DATE | "txid"
+  BB_DATE | "txid"
+  ORIGIN | "txid"
+  GLN | "txid"
+  PROD_JUL_START | "txid"
+  PRODY_JUL_END | "txid"
+}
+}}
+" as bcdata
+
+GetPublicBatchRecord -down-> "
+{{
+salt
+{^"JuicyChain API - Public Data"
+  BATCH_LOT    | "111111"
+  PROD_DATE | "01/01/2020"
+  BB_DATE | "31/12/2022"
+  ORIGIN | "Country"
+  GLN | "location/facility"
+  PROD_JUL_START | "julian day s"
+  PRODY_JUL_END | "julian day e"
+}
+}}
+" as webdata
+
+bcdata -left-> webdata
+BatchWallet ..> bcdata
+GetPublicBatchRecord -right-> JuicyChainAPI
+GetPublicBatchRecord -left-> ConsumerProductJourney
+ConsumerProductJourney -left-> "
+{{
+salt
+{+
+{* JUICE | PRODUCT | JOURNEY | JUICYCHAIN }
+{/ All | Bottler | Producer }
+{
+{ Enter Details: | ^Best Before Date^ }
+[X] Show Related Products
+[ ] Send Record To Email
+[ ] Tweet This
+}
+[Search]
+}
+}}
+" as consumerview
+@enduml

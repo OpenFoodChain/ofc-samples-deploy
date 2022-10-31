@@ -1,0 +1,12 @@
+[submodule "simple-working/ofc-juicychain-batch-processing"]
+	path = simple-working/ofc-juicychain-batch-processing
+	url = https://github.com/OpenFoodChain/ofc-juicychain-batch-processing.git
+[submodule "simple-working/ofc-import-api"]
+	path = simple-working/ofc-import-api
+	url = https://github.com/OpenFoodChain/ofc-import-api.git
+[submodule "simple-working/ofc-juicychain-api"]
+	path = simple-working/ofc-juicychain-api
+	url = https://github.com/OpenFoodChain/ofc-juicychain-api.git
+[submodule "simple-working/ofc-smartchain-node/BitcoinECDSA.php"]
+	path = simple-working/ofc-smartchain-node/BitcoinECDSA.php
+	url = git@github.com:DeckerSU/BitcoinECDSA.php.git

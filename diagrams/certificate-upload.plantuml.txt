@@ -1,0 +1,34 @@
+@startuml
+autonumber
+== upload or pre-approved or rejected ==
+box "Supplier"
+"Supplier" -> "SupplierSystem" : uploadCertificate
+"SupplierSystem" -> "SupplierBCNode" : generateKeyPairAndAddress
+"SupplierSystem" -> "SupplierSystem" : registerAddressEventListener
+"SupplierSystem" -> "SupplierBCNode" : sendToCertAddressUploadCoinAmount(0.01)
+end box
+box "Bottler"
+"SupplierSystem" -> "Bottler" : notifyUploadCertAddress(email)
+note left
+  the instructions are to
+  send coin to certificate address
+end note
+== approved ==
+"Bottler" -> "BottlerSystem" : approveCertificate
+"BottlerSystem" -> "BottlerBCNode" : sendCertApprovalCoinAmount(0.01)
+end box
+"SupplierBCNode" -> "SupplierSystem" : notifyApprovalReceiveTx
+note left
+  when a tx is received to the 
+  certificate address from the 
+  bottler address it has been approved
+end note
+"SupplierSystem" -> "ConsumerSystem" : createCertificate(certAddress, certDetails)
+"ConsumerSystem" -> "PublicBCExplorerWS" : validateApprovalTx
+"ConsumerSystem" -> "ConsumerSystem" : createCertRecord(certDetails, certAddress)
+note right
+  the certAddress is known by
+  supplier and bottler. it can
+  be found by searching/linking the address
+end note
+@enduml

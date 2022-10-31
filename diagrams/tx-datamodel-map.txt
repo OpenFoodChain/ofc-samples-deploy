@@ -1,0 +1,101 @@
+@startuml
+class "JuicyChain API" as JCAPI<< (W,#FF7700) API >>
+
+JCAPI : POOL_FROM_PO : raddress(main send satvalue)
+JCAPI : POOL_TO_PO : raddress(main send satvalue)
+JCAPI : POOL_FROM_BATCH_LOT : raddress(main send satvalue)
+JCAPI : POOL_TO_BATCH_LOT : raddress(main send satvalue)
+object "JuicyChain Data Model v1" as Receipt
+
+Receipt o-up- JCAPI
+Receipt : REF_FROM : raddress(send)
+Receipt : REF_TO : raddress(na)
+Receipt : UUID : bigint(na)
+Receipt : BATCH_LOT : raddress(receive)
+Receipt : GTIN : raddress(send small)
+Receipt : PROD_DATE : raddress(send 0.satvalue)
+Receipt : BB_DATE : raddress(send 0.satvalue)
+Receipt : ORIGIN : raddress(send small)
+Receipt : GLN : raddress(send small)
+Receipt : FROM_MAT_NUM : bigint(send satvalue1)
+Receipt : TO_MAT_NUM : bigint(send satvalue2)
+Receipt : PROD_JULIAN_START : raddress(send coinvalue)
+Receipt : PROD_JULIAN_STOP : raddress(send coinvalue)
+class Refresco<< (K,#006400) KomodoNodeWallet >>
+class AustriaJuice<< (K,#006400) KomodoNodeWallet >>
+class AllPO<< (P,#ddbbcc) PaperWallet>>
+class CurrentPO << (P,#ddbbcc) PaperWallet>> #Orange
+class AllProductLot<< (P,#ddbbcc) PaperWallet>>
+class CurrentProductLot<< (P,#ddbbcc) PaperWallet>> #Orange
+class LocationHerrath<< (O,#00bbcc) OfflineWallet>>
+class CountryGermany<< (O,#00bbcc) OfflineWallet>>
+class BestBeforeDates<< (O,#00bbcc) OfflineWallet>>
+class ProductionDate<< (O,#00bbcc) OfflineWallet>>
+class JulianStartDates<< (O,#00bbcc) OfflineWallet>>
+class JulianEndDates<< (O,#00bbcc) OfflineWallet>>
+class CertificationAgrovet<< (O,#00bbcc) OfflineWallet>>
+class LocationBialobrzegi<< (O,#00bbcc) OfflineWallet>>
+class ExpectDeliveryDate<< (O,#00bbcc) OfflineWallet>>
+class CurrentBatch<< (P,#ddbbcc) PaperWallet>> #Orange
+class AllBatch<< (P,#ddbbcc) PaperWallet>>
+class AllCustomerPO<< (P,#ddbbcc) PaperWallet>>
+class ArticleNumber<< (O,#00bbcc) OfflineWallet>>
+class MaterialNumber<< (O,#00bbcc) OfflineWallet>>
+Receipt <|-left- CurrentBatch
+
+
+
+CurrentBatch <-down- AustriaJuice : 1
+CurrentBatch : BATCH_LOT
+AustriaJuice : REF_FROM
+AllBatch <-- AustriaJuice : 1 satValue
+AllBatch : POOL_FROM_BATCH_LOT
+AllPO <.. "satValue & JCAPI Lookup Ref" AustriaJuice : 1
+AllCustomerPO <-- AustriaJuice : 1 satValue
+AllCustomerPO : POOL_FROM_PO
+CurrentBatch <-- "satValue" ExpectDeliveryDate  : 2
+CurrentBatch <-- LocationBialobrzegi : 3
+LocationBialobrzegi : GLN
+CurrentBatch <-- MaterialNumber
+MaterialNumber : GTIN
+CurrentBatch <-- CertificationAgrovet : 4
+CertificationAgrovet : REF_TO(Refresco)
+CertificationAgrovet : GLN(Bialobrzegi)
+CertificationAgrovet : FROM_MAT_NUM(GTIN)
+
+
+
+Receipt <|-right- CurrentProductLot
+
+
+AllPO <-- "satValue" Refresco : a
+AllPO : POOL_FROM_PO
+CurrentPO <-down- Refresco : a
+CurrentProductLot *--CurrentPO
+AllProductLot <-down- "satValue" Refresco : a
+note right
+  plantuml src: https://github.com/The-New-Fork/deploy-samples/blob/master/diagrams/tx-datamodel-map.txt
+end note
+AllProductLot : POOL_FROM_BATCH_LOT
+Refresco : REF_FROM
+CurrentProductLot : UUID(11313-13134...)
+CurrentProductLot : BATCH_LOT
+CurrentProductLot : 11200100520
+CurrentProductLot : 11200100520
+CurrentProductLot <-left- ArticleNumber
+ArticleNumber : GTIN
+CurrentProductLot <-- "satValue" Refresco : a
+CurrentBatch <.left. "JuicyChain API Lookup Ref" Refresco : a
+CurrentProductLot <-- LocationHerrath : c
+LocationHerrath : GLN
+CurrentProductLot <-down- CountryGermany : d
+CountryGermany : ORIGIN
+CurrentProductLot <-down- "satValue" BestBeforeDates : e
+BestBeforeDates : BB_DATE
+CurrentProductLot <-down- "satValue" ProductionDate : e
+ProductionDate : PROD_DATE
+CurrentProductLot <-down- "satValue" JulianStartDates : f 
+CurrentProductLot <-down- "satValue" JulianEndDates : g
+JulianStartDates : PROD_JULIAN_START
+JulianEndDates : PROD_JULIAN_STOP
+@enduml

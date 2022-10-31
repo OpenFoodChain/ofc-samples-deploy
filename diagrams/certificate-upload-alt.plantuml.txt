@@ -1,0 +1,44 @@
+@startuml
+autonumber
+== upload or pre-approved or rejected ==
+box "Supplier"
+"Supplier" -> "SupplierSystem" : uploadCertificate
+"SupplierSystem" -> "SupplierSystem" : createCertificateRecord(certDetails)
+"SupplierSystem" -> "SupplierBCNode" : generateKeyPairAndAddress
+"SupplierSystem" -> "SupplierSystem" : updateCertificateRecord(certAddress)
+"SupplierSystem" -> "SupplierSystem" : registerAddressEventListener(certAddress)
+"SupplierSystem" -> "SupplierBCNode" : sendToCertAddressUploadCoinAmount(0.01)
+"SupplierSystem" -> "SupplierSystem" : updateCertificateRecord(registrationTx)
+end box
+"SupplierSystem" -> "ConsumerSystem" : createPreApprovedCert(certDetails, certAddress)
+box "Bottler"
+"SupplierSystem" -> "Bottler" : notifyUploadCertAddress(emailOrSendToNotificationAddress)
+note left
+  the instructions are to
+  send coin to certificate address
+end note
+note right
+  a message scheme can be created using a "notifyAddress"
+  when received coin from multiple outputs, check the other output
+  on the consumer service for further details
+end note
+"BottlerSystem" -> "ConsumerSystem" : getCertificateDetails(certAddress)
+== approved ==
+"Bottler" -> "BottlerSystem" : approveCertificate
+"BottlerSystem" -> "BottlerBCNode" : sendCertApprovalCoinAmount(0.01) 
+end box
+"SupplierBCNode" -> "SupplierSystem" : notifyApprovalReceiveTx
+note left
+  when a tx is received to the 
+  certificate address from the 
+  bottler address it has been approved
+end note
+"SupplierSystem" -> "ConsumerSystem" : createCertificate(certAddress, certDetails)
+"ConsumerSystem" -> "PublicBCExplorerWS" : validateApprovalTx
+"ConsumerSystem" -> "ConsumerSystem" : updateCertRecord(approve)
+note right
+  the certAddress is known by
+  supplier and bottler. it can
+  be found by searching/linking the address
+end note
+@enduml

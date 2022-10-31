@@ -1,0 +1,43 @@
+@startuml
+object Refresco
+object AustriaJuice
+object AllPO
+object CurrentPO
+object AllProductLot
+object CurrentProductLot
+object LocationHerrath
+object CountryGermany
+object BestBeforeDates
+object JulianStartDates
+object JulianEndDates
+object CertificationAgrovet
+object LocationBialobrzegi
+object ExpectDeliveryDate
+object CurrentBatch
+object AllBatch
+object AllCustomerPO
+
+AllPO <|-- "satValue" Refresco : a
+CurrentPO <|-- Refresco : a
+AllProductLot <|-- "satValue" Refresco : b
+CurrentProductLot <|-up- "satValue" Refresco : b
+CurrentBatch <|.. Refresco : b
+note left
+  plantuml src: https://github.com/The-New-Fork/deploy-samples/blob/master/diagrams/transaction.txt
+end note
+CurrentProductLot <|-- LocationHerrath : c
+CurrentProductLot <|-- CountryGermany : d
+CurrentProductLot <|-- "satValue" BestBeforeDates : e
+CurrentProductLot <|-- "satValue" JulianStartDates : f 
+CurrentProductLot <|-- "satValue" JulianEndDates : g
+
+
+CurrentBatch <|-- AustriaJuice : 1
+AllBatch <|-- AustriaJuice : 1
+AllPO <|.up. "satValue" AustriaJuice : 1
+AllCustomerPO <|-down- AustriaJuice : 1
+
+CurrentBatch <|-up- "satValue" ExpectDeliveryDate  : 2
+CurrentBatch <|-up- LocationBialobrzegi : 3
+CurrentBatch <|-up- CertificationAgrovet : 4
+@enduml
