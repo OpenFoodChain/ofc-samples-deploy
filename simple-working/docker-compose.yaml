@@ -74,9 +74,9 @@ services:
     volumes:
       - ./ijuice-komodo-node/data:${DATA_PATH}/${AC_NAME}
       - ./customer-smartchain-nodes-blocknotify:/opt/komodo/customer-smartchain-nodes-blocknotify
-  blocknotify-python:
+  jc-batch-processing:
     build:
-      context: ./blocknotify-python
+      context: ./ofc-juicychain-batch-processing
       args:
         ENV: dev
     command: /code/run.sh
@@ -85,14 +85,14 @@ services:
     #tty: true        # docker run -t
     depends_on:
       - ijuice-komodo-node
-      - import-api
-      - juicychain-api
+      - ofc-import-api
+      - ofc-juicychain-api
     networks:
       komodo:
         ipv4_address: ${BLOCKNOTIFY_PYTHON_IPV4_ADDR}
-  import-api:
+  ofc-import-api:
     build:
-      context: ./import-api
+      context: ./ofc-import-api
       args:
         ENV: dev
     command: python manage.py runserver 0.0.0.0:8777
@@ -113,9 +113,9 @@ services:
     networks:
       komodo:
           ipv4_address: ${IMPORT_API_IPV4_ADDR}
-  juicychain-api:
+  ofc-juicychain-api:
     build:
-      context: ./juicychain-api
+      context: ./ofc-juicychain-api
       args:
         ENV: dev
     command: python manage.py runserver 0.0.0.0:8999

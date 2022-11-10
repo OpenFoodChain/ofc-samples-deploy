@@ -1,2 +1,2 @@
 #!/bin/bash
-docker-compose up -d blocknotify-python
+docker-compose up -d ofc-jc-batch-processing

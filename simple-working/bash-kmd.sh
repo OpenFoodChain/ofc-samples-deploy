@@ -1,2 +1,2 @@
 #!/bin/bash
-docker exec simple-working_blocknotify-python_1 ./run.sh
+docker exec simple-working_jc_batch_1 ./run.sh
